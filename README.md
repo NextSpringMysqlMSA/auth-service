@@ -1,0 +1,1 @@
+# NSMM-auth-service
