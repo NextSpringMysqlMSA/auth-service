@@ -5,10 +5,7 @@ import com.nsmm.esg.authservice.dto.LoginResponse;
 import com.nsmm.esg.authservice.dto.RegisterRequest;
 import com.nsmm.esg.authservice.service.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -16,6 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
 
     private final MemberService memberService;
+
+    @GetMapping("/test")
+    public String test() {
+        return "auth-service API 호출 성공!";
+    }
+
 
 
     @PostMapping("register")
