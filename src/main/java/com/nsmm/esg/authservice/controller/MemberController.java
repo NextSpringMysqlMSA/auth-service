@@ -2,9 +2,12 @@ package com.nsmm.esg.authservice.controller;
 
 import com.nsmm.esg.authservice.dto.LoginRequest;
 import com.nsmm.esg.authservice.dto.LoginResponse;
+import com.nsmm.esg.authservice.dto.MemberResponse;
 import com.nsmm.esg.authservice.dto.RegisterRequest;
 import com.nsmm.esg.authservice.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,9 +17,32 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping("/test")
-    public String test() {
-        return "auth-service API 호출 성공!";
+    @GetMapping("/me")
+    public MemberResponse getMyInfo() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
+            throw new RuntimeException("로그인이 필요합니다.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        Long memberId;
+
+        if (principal instanceof Long id) {
+            memberId = id;
+        } else if (principal instanceof String str) {
+            try {
+                memberId = Long.parseLong(str);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("인증된 사용자 ID가 올바르지 않습니다.");
+            }
+        } else {
+            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+        }
+
+        return memberService.getMemberInfo(memberId);
     }
 
 

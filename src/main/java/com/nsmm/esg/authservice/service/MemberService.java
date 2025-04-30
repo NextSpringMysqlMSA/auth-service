@@ -1,6 +1,7 @@
 package com.nsmm.esg.authservice.service;
 
 import com.nsmm.esg.authservice.config.JwtTokenProvider;
+import com.nsmm.esg.authservice.dto.MemberResponse;
 import com.nsmm.esg.authservice.entity.Member;
 import com.nsmm.esg.authservice.dto.LoginRequest;
 import com.nsmm.esg.authservice.dto.RegisterRequest;
@@ -78,5 +79,19 @@ public class MemberService {
         return jwtTokenProvider.createToken(member.getId());
     }
     //------------------------------------------------------------------------------------------------------
+
+    public MemberResponse getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
+
+        return MemberResponse.builder()
+                .memberId(member.getId())
+                .name(member.getName())
+                .email(member.getEmail())
+                .phoneNumber(member.getPhoneNumber())
+                .companyName(member.getCompanyName())
+                .position(member.getPosition())
+                .build();
+    }
 
 }

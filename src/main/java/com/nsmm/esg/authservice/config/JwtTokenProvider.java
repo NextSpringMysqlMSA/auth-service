@@ -27,15 +27,15 @@ public class JwtTokenProvider {
 
     /**
      * JWT 생성
-     * @param userId 사용자 고유 ID
+     * @param memberId 사용자 고유 ID
      * @return Bearer JWT 토큰 문자열
      */
-    public String createToken(Long userId) {
+    public String createToken(Long memberId) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationHours * 60 * 60 * 1000L);
 
         return "Bearer " + Jwts.builder()
-                .setSubject(String.valueOf(userId)) // ✅ subject에 userId 저장
+                .setSubject(String.valueOf(memberId)) // ✅ subject에 userId 저장
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -45,9 +45,9 @@ public class JwtTokenProvider {
     /**
      * 토큰에서 userId 추출
      * @param token JWT 토큰
-     * @return userId
+     * @return memberId
      */
-    public Long getUserId(String token) {
+    public Long getMemberId(String token) {
         return Long.parseLong(Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -55,7 +55,6 @@ public class JwtTokenProvider {
                 .getBody()
                 .getSubject());
     }
-
     /**
      * JWT 유효성 검사
      * @param token JWT 토큰
