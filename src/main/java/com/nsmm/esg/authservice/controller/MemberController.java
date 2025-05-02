@@ -1,14 +1,13 @@
 package com.nsmm.esg.authservice.controller;
 
-import com.nsmm.esg.authservice.dto.LoginRequest;
-import com.nsmm.esg.authservice.dto.LoginResponse;
-import com.nsmm.esg.authservice.dto.MemberResponse;
-import com.nsmm.esg.authservice.dto.RegisterRequest;
+import com.nsmm.esg.authservice.dto.*;
 import com.nsmm.esg.authservice.service.MemberService;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/auth")
@@ -17,55 +16,63 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping("/me")
-    public MemberResponse getMyInfo() {
+    // 인증된 사용자 ID 추출 공통 메서드
+    private Long getCurrentMemberId() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null || !authentication.isAuthenticated()
                 || authentication.getPrincipal().equals("anonymousUser")) {
             throw new RuntimeException("로그인이 필요합니다.");
         }
 
         Object principal = authentication.getPrincipal();
+        if (principal instanceof Long id) return id;
+        if (principal instanceof String str) return Long.parseLong(str);
 
-        Long memberId;
-
-        if (principal instanceof Long id) {
-            memberId = id;
-        } else if (principal instanceof String str) {
-            try {
-                memberId = Long.parseLong(str);
-            } catch (NumberFormatException e) {
-                throw new RuntimeException("인증된 사용자 ID가 올바르지 않습니다.");
-            }
-        } else {
-            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
-        }
-
-        return memberService.getMemberInfo(memberId);
+        throw new RuntimeException("인증 정보가 유효하지 않습니다.");
     }
 
+    // ========================= [1] 내 정보 조회 =========================
+    @GetMapping("/me")
+    public MemberResponse getMyInfo() {
+        return memberService.getMemberInfo(getCurrentMemberId());
+    }
 
-
-    @PostMapping("register")
-    public String register(@RequestBody RegisterRequest request) {
-        // 클라이언트로부터 회원가입 요청을 받음 (이름, 이메일, 비밀번호 등 포함)
-        // MemberService를 통해 회원가입 로직 수행 (중복 체크 및 저장)
-        // 성공 시 "success" 문자열 반환
+    // ========================= [2] 회원가입 =========================
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody @Valid RegisterRequest request) {
         memberService.register(request);
-        return "success";
+        return ResponseEntity.ok("회원가입 성공");
     }
-    //------------------------------------------------------------------------------------------------------
 
+    // ========================= [3] 로그인 =========================
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
-        // 클라이언트로부터 로그인 요청을 받음 (이메일, 비밀번호 포함)
-        // MemberService에서 이메일 존재 여부 및 비밀번호 일치 확인 후 JWT 생성
-        // 생성된 JWT 토큰을 JSON 형태로 반환 ({"token": "Bearer ey..."} 형태)
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         String token = memberService.login(request);
-        return new LoginResponse(token);
+        return ResponseEntity.ok(new LoginResponse(token));
     }
-    //------------------------------------------------------------------------------------------------------
 
+    // ========================= [4] 비밀번호 변경 =========================
+    @PutMapping("/password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        memberService.changePassword(getCurrentMemberId(), request);
+        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    // ========================= [5] 프로필 이미지 변경 =========================
+    @PutMapping("/profile-image")
+    public ResponseEntity<String> updateProfileImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("파일이 비어있습니다.");
+        }
+        String imageUrl = memberService.updateProfileImage(getCurrentMemberId(), file);
+        return ResponseEntity.ok(imageUrl);
+    }
+
+    @GetMapping("/profile-image")
+    public ResponseEntity<String> getProfileImageUrl() {
+        Long memberId = getCurrentMemberId(); // 인증된 사용자
+        String imageUrl = memberService.getProfileImageUrl(memberId);
+        return ResponseEntity.ok(imageUrl); // 예: "/images/abc.jpg"
+    }
 
 }

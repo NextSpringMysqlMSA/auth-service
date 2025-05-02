@@ -33,4 +33,18 @@ public class Member {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(length = 500)
+    private String profileImageUrl;
+
+
+    // 비밀번호 변경 비즈니스 메서드
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void updateProfileImageUrl(String imageUrl) {
+        this.profileImageUrl = imageUrl;
+    }
+
 }

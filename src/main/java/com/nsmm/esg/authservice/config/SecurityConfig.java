@@ -41,6 +41,7 @@ public class SecurityConfig {
 
                         // 인증 필요 없는 경로 설정 (/auth/**는 로그인, 회원가입 등 허용)
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
 
                         // 그 외 모든 요청은 인증 필요 (JWT 필터를 통해 인증됨)
                         .anyRequest().authenticated()

@@ -15,4 +15,6 @@ public class MemberResponse {
     private String phoneNumber;
     private String companyName;
     private String position;
+    private String profileImageUrl;
+
 }
