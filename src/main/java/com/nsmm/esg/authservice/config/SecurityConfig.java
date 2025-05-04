@@ -1,6 +1,6 @@
 package com.nsmm.esg.authservice.config;
 
-import jakarta.ws.rs.HttpMethod;
+import org.springframework.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,49 +11,65 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Spring Security 설정 클래스
+ * - HTTP 보안 구성 (요청별 접근 제어, JWT 필터 등록 등)
+ * - Stateless 기반 API 서버에 최적화된 설정 사용
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    // JWT 토큰 유효성 검사 및 사용자 인증 처리에 사용되는 Provider
     private final JwtTokenProvider jwtTokenProvider;
 
-    //------------------------------------------------------------------------------------------------------
+    /**
+     * SecurityFilterChain 설정 (Spring Security 5 이상에서 사용)
+     * - JWT 기반 인증 및 인가를 위한 보안 필터 체인 구성
+     *
+     * @param http HttpSecurity 객체
+     * @return SecurityFilterChain
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CORS 기본 설정 적용 (BeanConfig에서 정의된 CORS 설정 사용)
+                // CORS 설정 활성화
+                // 기본적으로 WebMvcConfigurer에 정의한 cors 설정을 적용
                 .cors(Customizer.withDefaults())
 
-                // CSRF 비활성화 (JWT 기반 Stateless 방식이므로 필요 없음)
+                // CSRF 보호 비활성화
+                // JWT 기반 API 서버는 세션을 사용하지 않기 때문에 CSRF 보호 필요 없음
                 .csrf(csrf -> csrf.disable())
 
-                // 기본 로그인 폼/HTTP Basic 인증 비활성화 (JWT 방식 사용하므로)
+                // HTTP Basic 인증 방식 비활성화 (브라우저 팝업 방식 로그인 창 방지)
                 .httpBasic(httpBasic -> httpBasic.disable())
 
-                // 세션 사용 안 함 - 완전 Stateless 방식
+                // 세션 생성 정책 설정
+                // Spring Security가 세션을 생성하거나 사용하지 않도록 설정 (JWT 기반 인증을 위해 필수)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 요청 URL 별 보안 설정
+                // URL별 접근 제어 설정
                 .authorizeHttpRequests(auth -> auth
-                        // 프리플라이트 요청 허용 (CORS 대응을 위해 OPTIONS 메서드 허용)
+                        // CORS 사전 요청(OPTIONS 메서드)은 인증 없이 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 인증 필요 없는 경로 설정 (/auth/**는 로그인, 회원가입 등 허용)
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/images/**").permitAll()
+                        // 인증이 필요 없는 공용 API 경로
+                        .requestMatchers("/auth/**").permitAll()        // 로그인, 회원가입 등
+                        .requestMatchers("/images/**").permitAll()      // 정적 이미지 접근 허용
 
-                        // 그 외 모든 요청은 인증 필요 (JWT 필터를 통해 인증됨)
+                        // 위에서 명시한 경로 외에는 모두 인증 필요
                         .anyRequest().authenticated()
                 )
 
-                // JWT 인증 필터 등록 (UsernamePasswordAuthenticationFilter 앞에 실행됨)
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+                // JWT 인증 필터 등록
+                // UsernamePasswordAuthenticationFilter 앞에 위치시켜 요청마다 JWT 검사 우선 실행
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtTokenProvider),
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
-        return http.build(); // SecurityFilterChain 반환
+        // 최종적으로 구성된 필터 체인 반환
+        return http.build();
     }
-    //------------------------------------------------------------------------------------------------------
 }
-
-
-
