@@ -20,4 +20,4 @@ public class UserNotFoundException extends AuthException {
     public UserNotFoundException(String email, String reason) {
         super("이메일이 " + email + "인 사용자를 찾을 수 없습니다. 이유: " + reason, STATUS, ERROR_CODE);
     }
-} 
+}
