@@ -1,4 +1,5 @@
 ## 🌿 회원가입 & 로그인 & 내 정보 조회 흐름 
+```mermaid
 flowchart LR
     start((Start))
 
