@@ -57,6 +57,7 @@ public class SecurityConfig {
                         // 인증이 필요 없는 공용 API 경로
                         .requestMatchers("/auth/**").permitAll()        // 로그인, 회원가입 등
                         .requestMatchers("/images/**").permitAll()      // 정적 이미지 접근 허용
+                        .requestMatchers("/actuator/**").permitAll()    // Actuator 엔드포인트 접근 허용
 
                         // 위에서 명시한 경로 외에는 모두 인증 필요
                         .anyRequest().authenticated()
