@@ -1,4 +1,29 @@
-## 🌿 회원가입 → 로그인 → 내 정보 조회 흐름 
+
+# 🙋 회원가입 → 로그인 → 내 정보 조회 API 흐름
+
+이 흐름은 사용자의 **회원가입 → 로그인 → 내 정보 확인**까지의 인증 과정을 나타냅니다.  
+JWT 기반 인증 시스템을 통해 보안이 적용된 사용자 식별 및 정보 조회가 가능합니다.
+
+---
+
+## ✅ 기능 요약
+
+| 단계 | 설명 |
+|------|------|
+| 회원가입 | 사용자로부터 입력받은 정보로 회원 계정 생성 |
+| 로그인 | 이메일/비밀번호 기반 인증 → JWT 토큰 발급 |
+| 내 정보 조회 | JWT 토큰을 통해 인증 후, 사용자 정보 조회 API 요청 |
+
+---
+
+## 🔐 인증 방식
+
+- 로그인 성공 시 `JWT 토큰`이 발급되며, 프론트엔드는 이를 `HttpOnly 쿠키` 또는 `Authorization 헤더`에 저장
+- 모든 사용자 정보 요청은 `X-MEMBER-ID` 또는 토큰 기반 인증 확인 과정을 거침
+
+---
+
+## 🔄 흐름도 (Mermaid)
 
 ```mermaid
 flowchart TD
@@ -37,3 +62,31 @@ flowchart TD
     class start,end1,end2,end3 terminal;
     class regReq,regProc,regResp,loginReq,loginProc,loginSuccess,jwt,meReq,authCheck,isAuthed,infoQuery,infoResp forest;
     class loginFail,authFail error;
+````
+
+---
+
+## 🛠️ 기술 스택
+
+* **Spring Boot + JWT 인증**
+* 회원가입/로그인: `AuthController`, `AuthService`
+* 내 정보 조회: `/auth/me` API
+* 인증 필터: `JwtAuthenticationFilter` → `X-MEMBER-ID` 주입
+
+---
+
+## ✍️ 개발 포인트
+
+* `IllegalArgumentException` 기반의 예외 처리 → 프론트에서 toast로 메시지 노출
+* JWT 토큰 인증 필터에서 `memberId` 추출 후 `X-MEMBER-ID` 헤더로 각 서비스 전달
+* 인증 실패 및 로그인 실패 메시지를 명확하게 구분하여 반환
+
+---
+
+## 📈 확장 가능성
+
+* 소셜 로그인 연동 (OAuth2)
+* 로그인 실패 횟수 제한 및 차단 기능 추가
+* 회원 탈퇴, 정보 수정 API 확장
+
+
