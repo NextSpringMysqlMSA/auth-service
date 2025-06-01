@@ -24,7 +24,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory> <!-- 30일간 보관 -->
-        </rollingPolicy>
+        </rollingPolicy>z
     </appender>
     
     <!-- 오류 로그만 따로 저장 -->
