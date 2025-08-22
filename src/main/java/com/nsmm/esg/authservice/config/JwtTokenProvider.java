@@ -35,7 +35,7 @@ public class JwtTokenProvider {
         Date expiry = new Date(now.getTime() + expirationHours * 60 * 60 * 1000L);
 
         return "Bearer " + Jwts.builder()
-                .setSubject(String.valueOf(memberId)) // ✅ subject에 userId 저장
+                .setSubject(String.valueOf(memberId)) // subject에 userId 저장
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key, SignatureAlgorithm.HS256)
